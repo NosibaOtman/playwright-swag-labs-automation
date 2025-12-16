@@ -1,11 +1,12 @@
-import { test } from '@playwright/test';
-import { LoginPage } from '../pages/login.page';
-import { InventoryPage } from '../pages/inventory.page';
+import { test, expect } from '@playwright/test';
+import { USERS } from '../data/users';
+import { URLS } from '../data/urls';
 import { CartPage } from '../pages/cart.page';
+import { CheckoutCompletePage } from '../pages/checkoutComplete.page';
 import { CheckoutStepOnePage } from '../pages/checkoutStepOne.page';
 import { CheckoutStepTwoPage } from '../pages/checkoutStepTwo.page';
-import { CheckoutCompletePage } from '../pages/checkoutComplete.page';
-import { USERS } from '../data/users';
+import { InventoryPage } from '../pages/inventory.page';
+import { LoginPage } from '../pages/login.page';
 
 test('Sanity test - full purchase flow', async ({ page }) => {
   const loginPage = new LoginPage(page);
@@ -19,6 +20,7 @@ test('Sanity test - full purchase flow', async ({ page }) => {
   await loginPage.navigate();
   await loginPage.login(USERS.standard.username, USERS.standard.password);
   await inventoryPage.assertPageLoaded();
+  await expect(page).toHaveURL(URLS.inventory);
 
   // Add products
   await inventoryPage.addTwoProducts();
@@ -28,17 +30,21 @@ test('Sanity test - full purchase flow', async ({ page }) => {
   await inventoryPage.goToCart();
   await cartPage.assertPageLoaded();
   await cartPage.assertCartItemsCount(2);
+  await expect(page).toHaveURL(URLS.cart);
 
   // Checkout step one
   await cartPage.checkout();
   await stepOne.assertPageLoaded();
+  await expect(page).toHaveURL(URLS.checkoutStepOne);
   await stepOne.fillForm();
 
   // Checkout step two
   await stepTwo.assertPageLoaded();
+  await expect(page).toHaveURL(URLS.checkoutStepTwo);
   await stepTwo.finish();
 
   // Complete
   await completePage.assertPageLoaded();
+  await expect(page).toHaveURL(URLS.checkoutComplete);
   await completePage.assertThankYouVisible();
 });
